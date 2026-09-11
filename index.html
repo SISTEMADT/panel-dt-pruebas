@@ -58,7 +58,13 @@
     width:64px;background:var(--surface);border-right:1px solid var(--border);
     display:flex;flex-direction:column;align-items:center;padding:20px 0;gap:10px;flex-shrink:0;
   }
-  .sidebar .mark{width:28px;height:28px;border-radius:7px;background:var(--ink);margin-bottom:18px;}
+  .sidebar .mark{
+    width:28px;height:28px;border-radius:7px;background:var(--ink);margin-bottom:18px;
+    border:none;cursor:pointer;color:#fff;font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:10.5px;letter-spacing:.02em;display:flex;align-items:center;justify-content:center;
+    transition:transform .15s ease,background .15s ease;
+  }
+  .sidebar .mark:hover{background:#000;transform:scale(1.06);}
   .side-btn{
     width:40px;height:40px;border-radius:9px;border:none;background:transparent;color:var(--ink-faint);
     display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;
@@ -67,15 +73,58 @@
   .side-btn.active{background:var(--accent-bg);color:var(--accent);}
   .side-btn.active::after{content:"";position:absolute;left:-14px;top:8px;bottom:8px;width:3px;background:var(--accent);border-radius:3px;}
 
-  .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;position:relative;}
   .topbar{
     height:64px;border-bottom:1px solid var(--border);display:flex;align-items:center;
-    justify-content:space-between;padding:0 28px;background:var(--surface);flex-shrink:0;
+    justify-content:space-between;padding:0 28px;background:var(--surface);flex-shrink:0;position:relative;
   }
-  .topbar .title-wrap{display:flex;align-items:center;gap:12px;}
+  .topbar .title-wrap{display:flex;align-items:center;gap:6px;}
   .topbar .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);}
   .topbar h2{margin:0;font-size:17px;font-weight:600;}
   .topbar .role{font-size:12px;color:var(--ink-soft);}
+
+  .chev-btn{
+    display:flex;align-items:center;gap:6px;background:var(--accent-bg);color:var(--accent);
+    border:none;cursor:pointer;padding:7px 12px 7px 13px;border-radius:20px;margin-left:10px;
+    font-family:'Inter',sans-serif;font-weight:600;font-size:12.5px;
+  }
+  .chev-btn:hover{filter:brightness(.97);}
+  .chev-btn svg{width:13px;height:13px;transition:transform .15s ease;}
+  .chev-btn.open svg{transform:rotate(180deg);}
+
+  .menu-overlay{position:fixed;inset:0;z-index:40;background:transparent;display:none;}
+  .menu-overlay.show{display:block;}
+
+  .mega-menu{
+    position:absolute;top:64px;left:28px;z-index:50;background:var(--surface);
+    border:1px solid var(--border);border-radius:12px;box-shadow:0 16px 40px rgba(20,22,30,.16);
+    padding:22px 26px;display:none;gap:36px;
+  }
+  .mega-menu.show{display:flex;}
+  .mega-group{min-width:196px;}
+  .mega-group .g-title{
+    font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    padding-bottom:9px;margin-bottom:8px;border-bottom:2px solid var(--g-color);color:var(--g-color);
+  }
+  .mega-item{
+    display:flex;align-items:center;gap:9px;padding:7px 6px;border-radius:7px;font-size:13.5px;
+    color:var(--ink);cursor:pointer;white-space:nowrap;
+  }
+  .mega-item:hover{background:var(--bg);}
+  .mega-item.is-active{background:var(--bg);font-weight:600;}
+  .mega-item svg{width:15px;height:15px;color:var(--g-color);flex-shrink:0;}
+  .mega-item .mi-count{
+    margin-left:auto;padding-left:14px;font-size:11px;color:var(--ink-faint);background:var(--bg);
+    padding:1px 7px;border-radius:20px;
+  }
+
+  .jump-highlight{outline:3px solid var(--accent);outline-offset:3px;border-radius:10px;}
+
+  .iframe-wrap{
+    border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;
+    height:calc(100vh - 180px);min-height:520px;background:var(--surface);
+  }
+  .iframe-wrap iframe{width:100%;height:100%;border:none;display:block;}
   .switch-btn{
     font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--ink-soft);
     background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer;
@@ -89,6 +138,14 @@
     border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);cursor:pointer;
   }
   .subtab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+  .quadtabs{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;}
+  .quadtab{
+    font-family:'Inter',sans-serif;font-size:13px;font-weight:600;padding:9px 18px;border-radius:24px;
+    border:1px solid var(--border);background:var(--surface);color:var(--ink-soft);cursor:pointer;
+  }
+  .quadtab:hover{border-color:var(--accent);}
+  .quadtab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
   .workspace{display:grid;grid-template-columns:340px 1fr;gap:22px;align-items:start;}
   @media (max-width:980px){.workspace{grid-template-columns:1fr;}}
@@ -136,11 +193,18 @@
   .badge.baja{background:#E7F3E9;color:#227A3E;}
   .card select{padding:5px 8px;font-size:12px;margin-top:2px;}
 
-  /* Comercial placeholder */
-  .comercial-note{
-    background:var(--comercial-bg);border:1px dashed #C9B8F7;border-radius:var(--radius);
-    padding:16px 18px;font-size:13px;color:#4B2FA0;margin-bottom:20px;
+  /* Secciones sin funcionalidad todavía */
+  .placeholder-panel{
+    background:var(--accent-bg);border:1px dashed var(--accent);border-radius:var(--radius);
+    padding:32px;max-width:520px;
   }
+  .placeholder-panel .ph-icon{
+    width:38px;height:38px;border-radius:10px;background:var(--surface);color:var(--accent);
+    display:flex;align-items:center;justify-content:center;margin-bottom:14px;
+  }
+  .placeholder-panel .ph-icon svg{width:19px;height:19px;}
+  .placeholder-panel h3{margin:0 0 6px;font-size:16px;}
+  .placeholder-panel p{margin:0;font-size:13px;color:var(--ink-soft);line-height:1.55;}
   .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
   @media (max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
   .kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
@@ -162,22 +226,22 @@
     <button class="area-card" style="--accent:#3E63DD" onclick="login('sistemas')">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
       <div class="name">Sistemas</div>
-      <div class="sub">Soporte técnico</div>
+      <div class="sub">Help desk, soporte y desarrollo</div>
     </button>
     <button class="area-card" style="--accent:#B8790A" onclick="login('administracion')">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/></svg>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A2.5 2.5 0 0110.5 3h3A2.5 2.5 0 0116 5.5V7"/><path d="M3 13h18M11 13v2h2v-2"/></svg>
       <div class="name">Administración</div>
-      <div class="sub">Compras</div>
+      <div class="sub">Impuestos y contabilidad</div>
     </button>
     <button class="area-card" style="--accent:#188A76" onclick="login('rrhh')">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="8.5" r="2.4"/><path d="M16 14.3c2.6.4 4.5 2.3 4.5 5.2"/></svg>
       <div class="name">RRHH</div>
-      <div class="sub">Soporte y compras</div>
+      <div class="sub">Reclutamiento y empleados</div>
     </button>
     <button class="area-card" style="--accent:#6E45E2" onclick="login('comercial')">
       <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V9M10 19V5M16 19v-7M4 19h16"/></svg>
       <div class="name">Comercial</div>
-      <div class="sub">Indicadores</div>
+      <div class="sub">Indicadores y fuerza de venta</div>
     </button>
   </div>
 </div>
@@ -193,9 +257,14 @@
           <h2 id="topTitle">—</h2>
           <div class="role" id="topRole">Vista de área</div>
         </div>
+        <button class="chev-btn" id="chevBtn" onclick="toggleMegaMenu(event)" aria-label="Ver secciones del área">
+          <span>Secciones</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
       </div>
-      <button class="switch-btn" onclick="logout()">Cambiar de área</button>
     </div>
+    <div class="menu-overlay" id="menuOverlay" onclick="closeMegaMenu()"></div>
+    <div class="mega-menu" id="megaMenu"></div>
     <div class="content" id="content"></div>
   </div>
 </div>
@@ -210,13 +279,145 @@ const AREAS = {
 
 const ICONS = {
   sistemas:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
-  administracion:'<path d="M3 21h18M5 21V9l7-5 7 5v12M9 21v-6h6v6"/>',
+  administracion:'<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5.5A2.5 2.5 0 0110.5 3h3A2.5 2.5 0 0116 5.5V7"/><path d="M3 13h18M11 13v2h2v-2"/>',
   rrhh:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="8.5" r="2.4"/><path d="M16 14.3c2.6.4 4.5 2.3 4.5 5.2"/>',
   comercial:'<path d="M4 19V9M10 19V5M16 19v-7M4 19h16"/>'
 };
 
+const MI = {
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+  monitor:'<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  list:'<path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/>',
+  bell:'<path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>',
+  bag:'<path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 016 0"/>',
+  receipt:'<path d="M6 2h12v20l-3-2-3 2-3-2-3 2V2z"/><path d="M9 7h6M9 11h6"/>',
+  folder:'<path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>',
+  calc:'<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 6h6M8 11h8M8 15h8M8 19h4"/>',
+  userplus:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.8 3-6.3 6.5-6.3s6.5 2.5 6.5 6.3"/><path d="M19 8v5M16.5 10.5h5"/>',
+  users:'<circle cx="9" cy="8" r="3.2"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><circle cx="17.5" cy="8.5" r="2.4"/><path d="M16 14.3c2.6.4 4.5 2.3 4.5 5.2"/>',
+  star:'<path d="M12 2l2.9 6.6 7.1.8-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7-5.4-4.7 7.1-.8L12 2z"/>',
+  shirt:'<path d="M8 3l4 2 4-2 4 4-3 3v11H7V10L4 7l4-4z"/>',
+  chart:'<path d="M4 19V9M10 19V5M16 19v-7M4 19h16"/>',
+  trend:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>',
+  pulse:'<path d="M3 12h4l2-7 4 14 2-7h6"/>',
+  headset:'<path d="M4 13v-1a8 8 0 0116 0v1"/><rect x="3" y="13" width="4" height="6" rx="1.5"/><rect x="17" y="13" width="4" height="6" rx="1.5"/>',
+  code:'<path d="M8 9l-4 3 4 3M16 9l4 3-4 3M13 6l-2 12"/>',
+  tooth:'<path d="M12 3c-2.5 0-4.5 1.6-4.5 4 0 1 .3 1.7.3 3 0 2.5-1 6 1 8 .8.9 1.7-.3 1.9-2 .2-1.4.5-2 1.3-2s1.1.6 1.3 2c.2 1.7 1.1 2.9 1.9 2 2-2 1-5.5 1-8 0-1.3.3-2 .3-3 0-2.4-2-4-4.5-4z"/>',
+  cap:'<path d="M12 3L2 8l10 5 10-5-10-5z"/><path d="M6 10.5V16c0 1.5 3 3 6 3s6-1.5 6-3v-5.5"/>',
+  dot:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'
+};
+
+// Subáreas por área — se muestran como sub-pestañas dentro del contenido y como
+// accesos rápidos en el menú "Secciones" de la topbar.
+// type: 'soporte' | 'compras' | 'comercial-kpi' | 'placeholder'
+const SUBAREAS = {
+  sistemas: [
+    {key:'helpdesk',    label:'Help desk',        type:'placeholder', icon:MI.headset},
+    {key:'indicadores', label:'Indicadores',      type:'placeholder', icon:MI.chart},
+    {key:'soporte',     label:'Soporte técnico',  type:'soporte',     icon:MI.monitor},
+    {key:'desarrollo',  label:'Desarrollo',       type:'placeholder', icon:MI.code}
+  ],
+  administracion: [
+    {key:'administracion', label:'Administración', type:'placeholder', icon:MI.folder},
+    {key:'impuestos',      label:'Impuestos',      type:'placeholder', icon:MI.receipt},
+    {key:'contabilidad',   label:'Contabilidad',   type:'placeholder', icon:MI.calc}
+  ],
+  rrhh: [
+    {key:'reclutamiento', label:'Reclutamiento', type:'placeholder', icon:MI.userplus},
+    {key:'empleados',     label:'Empleados',     type:'placeholder', icon:MI.users},
+    {key:'odontologos',   label:'Odontólogos',   type:'placeholder', icon:MI.tooth},
+    {key:'novedades',     label:'Novedades',     type:'placeholder', icon:MI.bell},
+    {key:'capacitaciones',label:'Capacitaciones',type:'placeholder', icon:MI.cap}
+  ],
+  comercial: [
+    {key:'indicadores',   label:'Indicadores',    type:'comercial-kpi', icon:MI.chart},
+    {key:'fuerza_ventas', label:'Fuerza de venta', type:'placeholder',   icon:MI.trend},
+    {key:'novedades',     label:'Novedades',       type:'placeholder',   icon:MI.bell}
+  ]
+};
+
+// Tercer nivel: los "cuadrantes" (pestañas en formato píldora) dentro de cada subárea.
+// type: 'soporte' | 'comercial-kpi' | 'placeholder' (default)
+const CUADRANTES = {
+  sistemas: {
+    helpdesk: [
+      {label:'Solicitudes de help desk', type:'iframe', src:'/help-desk/tablero-admin.html'},
+      {label:'Minutas de reunión', type:'placeholder'}
+    ],
+    indicadores: [
+      {label:'Seguimiento de solicitudes', type:'placeholder'}
+    ],
+    soporte: [
+      {label:'Solicitudes de soporte técnico', type:'soporte'},
+      {label:'Relevamiento', type:'placeholder'}
+    ],
+    desarrollo: [
+      {label:'Soporte IA', type:'placeholder'},
+      {label:'Desarrollos IA', type:'placeholder'}
+    ]
+  },
+  administracion: {
+    administracion: [
+      {label:'Control de cajas', type:'placeholder'},
+      {label:'Gastos', type:'placeholder'},
+      {label:'Solicitud de pagos', type:'placeholder'}
+    ],
+    impuestos: [
+      {label:'Liquidaciones mensuales', type:'placeholder'},
+      {label:'DDJJ anual', type:'placeholder'}
+    ],
+    contabilidad: [
+      {label:'Alquileres', type:'placeholder'},
+      {label:'Vencimientos', type:'placeholder'},
+      {label:'Conciliación', type:'placeholder'}
+    ]
+  },
+  rrhh: {
+    reclutamiento: [
+      {label:'Búsquedas por área', type:'placeholder'}
+    ],
+    empleados: [
+      {label:'Nómina', type:'placeholder'},
+      {label:'Alta', type:'placeholder'},
+      {label:'Baja', type:'placeholder'}
+    ],
+    odontologos: [
+      {label:'Listado de odontólogos', type:'placeholder'},
+      {label:'Seguros y matrículas', type:'placeholder'}
+    ],
+    novedades: [
+      {label:'Horas extras', type:'placeholder'},
+      {label:'Incentivos', type:'placeholder'}
+    ],
+    capacitaciones: [
+      {label:'Capacitación recepcionistas', type:'placeholder'},
+      {label:'Capacitación asistentes', type:'placeholder'},
+      {label:'Capacitación odontólogos', type:'placeholder'}
+    ]
+  },
+  comercial: {
+    indicadores: [
+      {label:'Indicadores clínicas', type:'comercial-kpi'},
+      {label:'Indicadores odontólogos', type:'placeholder'},
+      {label:'Precios', type:'placeholder'}
+    ],
+    fuerza_ventas: [
+      {label:'Incentivos', type:'placeholder'},
+      {label:'Novedades', type:'placeholder'},
+      {label:'Rol del director', type:'placeholder'}
+    ],
+    novedades: [
+      {label:'Horas extras', type:'placeholder'},
+      {label:'Vacaciones', type:'placeholder'},
+      {label:'Fuerza de venta por zona', type:'placeholder'}
+    ]
+  }
+};
+
 let currentArea = null;
-let rrhhTab = 'soporte';
+let activeSub = {};
+let activeQuad = {};
 let idCounter = 1;
 
 // datos en memoria — separados por área (Sistemas y RRHH NO comparten tablero de soporte;
@@ -231,6 +432,7 @@ let compras = [
 
 function login(area){
   currentArea = area;
+  closeMegaMenu();
   document.getElementById('login').style.display='none';
   document.getElementById('app').classList.add('active');
   buildSidebar();
@@ -239,13 +441,53 @@ function login(area){
 }
 function logout(){
   currentArea = null;
+  closeMegaMenu();
   document.getElementById('app').classList.remove('active');
   document.getElementById('login').style.display='flex';
 }
 
+// ---------- MEGA-MENÚ ----------
+function buildMegaMenu(){
+  const subs = SUBAREAS[currentArea] || [];
+  const color = AREAS[currentArea].accent;
+  const active = activeSub[currentArea];
+  return `
+    <div class="mega-group">
+      <div class="g-title" style="--g-color:${color}">${AREAS[currentArea].label}</div>
+      ${subs.map(s=>`
+        <div class="mega-item ${s.key===active?'is-active':''}" style="--g-color:${color}" onclick="jumpToSub('${s.key}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">${s.icon}</svg>
+          <span>${s.label}</span>
+        </div>`).join('')}
+    </div>`;
+}
+function toggleMegaMenu(e){
+  e.stopPropagation();
+  const menu = document.getElementById('megaMenu');
+  if(menu.classList.contains('show')){ closeMegaMenu(); return; }
+  menu.innerHTML = buildMegaMenu();
+  menu.classList.add('show');
+  document.getElementById('menuOverlay').classList.add('show');
+  document.getElementById('chevBtn').classList.add('open');
+}
+function closeMegaMenu(){
+  const menu = document.getElementById('megaMenu');
+  if(!menu) return;
+  menu.classList.remove('show');
+  const overlay = document.getElementById('menuOverlay');
+  const chev = document.getElementById('chevBtn');
+  if(overlay) overlay.classList.remove('show');
+  if(chev) chev.classList.remove('open');
+}
+function jumpToSub(key){
+  setSub(key);
+  closeMegaMenu();
+}
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeMegaMenu(); });
+
 function buildSidebar(){
   const sb = document.getElementById('sidebar');
-  sb.innerHTML = '<div class="mark"></div>' + Object.keys(AREAS).map(key=>{
+  sb.innerHTML = '<button class="mark" onclick="logout()" title="Cambiar de área" aria-label="Cambiar de área">DT</button>' + Object.keys(AREAS).map(key=>{
     const a = AREAS[key];
     const active = key===currentArea ? 'active' : '';
     return `<button class="side-btn ${active}" style="--accent:${a.accent};--accent-bg:${a.bg}" title="${a.label}" onclick="login('${key}')">
@@ -265,11 +507,60 @@ function renderTop(){
 
 function renderContent(){
   const c = document.getElementById('content');
-  if(currentArea==='sistemas') c.innerHTML = viewSoporte('sistemas');
-  else if(currentArea==='administracion') c.innerHTML = viewCompras('administracion');
-  else if(currentArea==='rrhh') c.innerHTML = viewRRHH();
-  else if(currentArea==='comercial') c.innerHTML = viewComercial();
+  const subs = SUBAREAS[currentArea] || [];
+  if(!activeSub[currentArea]) activeSub[currentArea] = subs.length ? subs[0].key : null;
+  const active = activeSub[currentArea];
+  const sub = subs.find(s=>s.key===active) || subs[0];
+
+  updateTopRole(sub);
+
+  let html = '';
+  if(sub){
+    const quads = (CUADRANTES[currentArea] && CUADRANTES[currentArea][sub.key]) || null;
+    if(quads && quads.length){
+      const qKey = currentArea + '|' + sub.key;
+      if(activeQuad[qKey]===undefined) activeQuad[qKey] = 0;
+      const qi = activeQuad[qKey];
+      const quad = quads[qi] || quads[0];
+      html += renderQuadtabs(quads, qi, qKey);
+      html += renderQuadBody(quad);
+    } else if(sub.type==='soporte') html += viewSoporte(currentArea);
+    else if(sub.type==='compras') html += viewCompras(currentArea);
+    else if(sub.type==='comercial-kpi') html += viewComercialKpi();
+    else html += viewPlaceholder(sub);
+  }
+  c.innerHTML = html;
   attachHandlers();
+}
+function updateTopRole(sub){
+  const role = document.getElementById('topRole');
+  if(!role) return;
+  role.textContent = sub ? `${AREAS[currentArea].label} · ${sub.label}` : AREAS[currentArea].label;
+}
+function setSub(key){ activeSub[currentArea] = key; renderContent(); }
+
+function renderQuadtabs(quads, activeIdx, qKey){
+  if(quads.length<=1) return '';
+  return `<div class="quadtabs">${quads.map((q,i)=>`
+    <button class="quadtab ${i===activeIdx?'active':''}" onclick="setQuad('${qKey}',${i})">${q.label}</button>`).join('')}</div>`;
+}
+function setQuad(qKey, idx){ activeQuad[qKey] = idx; renderContent(); }
+function renderQuadBody(quad){
+  if(quad.type==='soporte') return viewSoporte(currentArea);
+  if(quad.type==='comercial-kpi') return viewComercialKpi();
+  if(quad.type==='iframe') return viewIframe(quad);
+  return viewQuadPlaceholder(quad);
+}
+function viewIframe(quad){
+  return `<div class="iframe-wrap"><iframe src="${quad.src}" title="${quad.label}" loading="lazy"></iframe></div>`;
+}
+function viewQuadPlaceholder(quad){
+  return `
+  <div class="placeholder-panel">
+    <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${MI.dot}</svg></div>
+    <h3>${quad.label}</h3>
+    <p>Esta sección todavía no tiene funcionalidad cargada. Cuando definamos qué necesita el equipo acá, armamos el formulario y/o el tablero correspondiente.</p>
+  </div>`;
 }
 
 function viewSoporte(area){
@@ -286,29 +577,28 @@ function viewCompras(area){
     ${boardCompras(area)}
   </div>`;
 }
-function viewRRHH(){
+function viewComercialKpi(){
   return `
-  <div class="subtabs">
-    <button class="subtab ${rrhhTab==='soporte'?'active':''}" onclick="setRrhhTab('soporte')">Solicitar soporte</button>
-    <button class="subtab ${rrhhTab==='compras'?'active':''}" onclick="setRrhhTab('compras')">Solicitar compra</button>
-  </div>
-  ${rrhhTab==='soporte' ? viewSoporte('rrhh') : viewCompras('rrhh')}
-  `;
-}
-function setRrhhTab(t){ rrhhTab = t; renderContent(); }
-
-function viewComercial(){
-  return `
-  <div class="comercial-note">
-    Esta área muestra los indicadores comerciales que ya publicaste en Vercel. En la versión final,
-    este espacio embebe ese dashboard (iframe o import directo si vive en el mismo proyecto) — acá va
-    una vista de referencia para mantener la coherencia visual del panel.
+  <div class="placeholder-panel" style="margin-bottom:20px;max-width:none;">
+    <p style="margin:0;font-size:13px;color:var(--ink-soft);">
+      Esta sección muestra los indicadores comerciales que ya publicaste en Vercel. En la versión final,
+      este espacio embebe ese dashboard (iframe o import directo si vive en el mismo proyecto) — acá va
+      una vista de referencia para mantener la coherencia visual del panel.
+    </p>
   </div>
   <div class="kpi-grid">
     <div class="kpi"><div class="label">Facturación del mes</div><div class="value">$182.4M</div><div class="delta up">+6.2% vs. mes anterior</div></div>
     <div class="kpi"><div class="label">Turnos agendados</div><div class="value">3.412</div><div class="delta up">+3.8%</div></div>
     <div class="kpi"><div class="label">Tasa de conversión</div><div class="value">41%</div><div class="delta down">-1.1%</div></div>
     <div class="kpi"><div class="label">Clínicas activas</div><div class="value">73</div><div class="delta up">+1</div></div>
+  </div>`;
+}
+function viewPlaceholder(sub){
+  return `
+  <div class="placeholder-panel">
+    <div class="ph-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">${sub.icon}</svg></div>
+    <h3>${sub.label}</h3>
+    <p>Esta sección todavía no tiene funcionalidad cargada. Cuando definamos qué necesita el equipo acá, armamos el formulario y/o el tablero correspondiente.</p>
   </div>`;
 }
 
