@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Help Desk — Tablero (Dental Total)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#F6F7F9; --surface:#FFFFFF; --border:#E4E7EC;
+    --ink:#1B1E24; --ink-soft:#6B7280; --ink-faint:#9AA1AC;
+    --accent:#3E63DD; --accent-bg:#EEF1FE; --danger:#D0393E; --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;}
+
+  /* ---------- LOGIN ---------- */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  #login .box{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);
+    border-radius:14px;padding:32px 28px;text-align:center;}
+  #login .brand{font-family:'Space Grotesk',sans-serif;font-weight:700;color:var(--accent);margin-bottom:6px;}
+  #login h1{font-size:19px;margin:0 0 20px;}
+  #login input{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;
+    font-size:14px;margin-bottom:10px;font-family:'Inter',sans-serif;}
+  #login button{width:100%;padding:11px;border:none;border-radius:8px;background:var(--accent);
+    color:#fff;font-weight:700;font-size:14px;cursor:pointer;margin-top:6px;}
+  #loginMsg{font-size:12.5px;color:var(--danger);margin-top:10px;min-height:16px;}
+
+  /* ---------- APP ---------- */
+  #app{display:none;}
+  #app.active{display:block;}
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 28px;
+    display:flex;align-items:center;justify-content:space-between;}
+  header .title{display:flex;align-items:center;gap:10px;}
+  header .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);}
+  header h1{font-size:16px;margin:0;}
+  .tabs{display:flex;gap:6px;}
+  .tab{font-size:13px;font-weight:600;padding:8px 16px;border-radius:8px;border:1px solid var(--border);
+    background:var(--surface);color:var(--ink-soft);cursor:pointer;}
+  .tab.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .logout{font-size:13px;font-weight:600;color:var(--ink-soft);background:var(--bg);
+    border:1px solid var(--border);border-radius:8px;padding:8px 14px;cursor:pointer;}
+
+  main{padding:24px 28px;}
+
+  /* ---------- KANBAN ---------- */
+  .board{display:flex;gap:14px;overflow-x:auto;padding-bottom:10px;}
+  .col{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    min-width:270px;flex-shrink:0;}
+  .col-head{padding:12px 14px;border-top:3px solid var(--c,var(--accent));border-bottom:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;border-radius:var(--radius) var(--radius) 0 0;}
+  .col-head .name{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.02em;}
+  .col-head .count{font-size:11px;color:var(--ink-faint);background:var(--bg);padding:2px 7px;border-radius:20px;}
+  .col-body{padding:10px;display:flex;flex-direction:column;gap:8px;min-height:120px;}
+  .empty{font-size:12px;color:var(--ink-faint);text-align:center;padding:18px 6px;}
+  .ticket{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 11px;
+    font-size:12.5px;cursor:pointer;}
+  .ticket:hover{border-color:var(--accent);}
+  .ticket .num{font-weight:700;color:var(--accent);font-size:11.5px;}
+  .ticket .tit{font-weight:600;margin:2px 0 4px;}
+  .ticket .meta{color:var(--ink-soft);font-size:11.5px;}
+
+  /* ---------- MODAL DETALLE ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(20,22,30,.4);display:none;align-items:center;
+    justify-content:center;z-index:60;padding:20px;}
+  .overlay.show{display:flex;}
+  .modal{background:var(--surface);border-radius:14px;padding:26px;width:100%;max-width:520px;
+    max-height:88vh;overflow-y:auto;}
+  .modal h2{font-size:17px;margin:0 0 2px;}
+  .modal .sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:18px;}
+  .modal label{display:block;font-size:12px;font-weight:700;color:var(--ink-soft);margin:12px 0 4px;
+    text-transform:uppercase;letter-spacing:.02em;}
+  .modal label:first-of-type{margin-top:0;}
+  .modal input,.modal select,.modal textarea{
+    width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:8px;font-size:13.5px;
+    font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);
+  }
+  .modal textarea{resize:vertical;min-height:56px;}
+  .modal .readonly{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 10px;
+    font-size:13.5px;color:var(--ink-soft);}
+  .modal .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .modal .actions{display:flex;gap:10px;margin-top:20px;}
+  .modal .actions button{flex:1;padding:10px;border-radius:8px;border:none;font-weight:700;font-size:13.5px;cursor:pointer;}
+  .btn-save{background:var(--accent);color:#fff;}
+  .btn-close{background:var(--bg);color:var(--ink-soft);border:1px solid var(--border) !important;}
+  .link-file{font-size:12.5px;color:var(--accent);}
+
+  /* ---------- CATÁLOGOS ---------- */
+  .cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+  .cat-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;}
+  .cat-panel h3{font-size:14px;margin:0 0 12px;}
+  .cat-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .cat-item:last-of-type{border-bottom:none;}
+  .cat-item input[type=text]{flex:1;border:1px solid transparent;background:transparent;padding:4px 6px;
+    border-radius:6px;font-size:13px;font-family:'Inter',sans-serif;}
+  .cat-item input[type=text]:focus{border-color:var(--border);background:var(--bg);outline:none;}
+  .cat-item button{background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:14px;}
+  .cat-item button:hover{color:var(--danger);}
+  .cat-add{display:flex;gap:8px;margin-top:12px;}
+  .cat-add input{flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:7px;font-size:13px;}
+  .cat-add button{padding:8px 12px;border:none;border-radius:7px;background:var(--accent);color:#fff;
+    font-weight:700;font-size:13px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="box">
+    <div class="brand">DENTAL TOTAL</div>
+    <h1>Help Desk — Acceso al equipo</h1>
+    <input type="email" id="loginEmail" placeholder="Email">
+    <input type="password" id="loginPass" placeholder="Contraseña">
+    <button onclick="doLogin()">Ingresar</button>
+    <div id="loginMsg"></div>
+  </div>
+</div>
+
+<div id="app">
+  <header>
+    <div class="title"><div class="dot"></div><h1>Solicitudes Help Desk</h1></div>
+    <div class="tabs">
+      <button class="tab active" id="tabBoard" onclick="setView('board')">Tablero</button>
+      <button class="tab" id="tabCat" onclick="setView('catalog')">Catálogos</button>
+    </div>
+    <button class="logout" onclick="doLogout()">Cerrar sesión</button>
+  </header>
+  <main>
+    <div id="boardView"></div>
+    <div id="catalogView" style="display:none"></div>
+  </main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<script>
+// ======= CONFIGURACIÓN — completar con los datos de tu proyecto Supabase =======
+const SUPABASE_URL = 'https://ejkcdvhvdljwxmsxdumq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_fXZNzp7BAOD8r_36sWkThw_eFTfBoOM';
+// ================================================================================
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let ESTADOS = [];
+let TICKETS = [];
+let currentTicket = null;
+
+// ---------- LOGIN ----------
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPass').value;
+  const msg = document.getElementById('loginMsg');
+  msg.textContent = '';
+  const {data, error} = await supabaseClient.auth.signInWithPassword({email, password});
+  if(error){ msg.textContent = 'No se pudo iniciar sesión: ' + error.message; return; }
+  const {data:perm} = await supabaseClient.rpc('tiene_permiso', {modulo:'help_desk'});
+  if(!perm){
+    msg.textContent = 'Tu usuario no tiene permiso para este módulo.';
+    await supabaseClient.auth.signOut();
+    return;
+  }
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('app').classList.add('active');
+  await bootstrap();
+}
+async function doLogout(){
+  await supabaseClient.auth.signOut();
+  document.getElementById('app').classList.remove('active');
+  document.getElementById('login').style.display = 'flex';
+}
+supabaseClient.auth.getSession().then(async ({data})=>{
+  if(data.session){
+    const {data:perm} = await supabaseClient.rpc('tiene_permiso', {modulo:'help_desk'});
+    if(perm){
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('app').classList.add('active');
+      await bootstrap();
+    }
+  }
+});
+
+// ---------- VISTA ----------
+function setView(v){
+  document.getElementById('tabBoard').classList.toggle('active', v==='board');
+  document.getElementById('tabCat').classList.toggle('active', v==='catalog');
+  document.getElementById('boardView').style.display = v==='board' ? 'block' : 'none';
+  document.getElementById('catalogView').style.display = v==='catalog' ? 'block' : 'none';
+  if(v==='catalog') renderCatalogs();
+}
+
+async function bootstrap(){
+  const {data:estados} = await supabaseClient.from('hd_estados').select('*').order('orden');
+  ESTADOS = estados || [];
+  await loadTickets();
+}
+
+async function loadTickets(){
+  const {data} = await supabaseClient.from('solicitudes_help_desk').select('*').order('created_at', {ascending:false});
+  TICKETS = data || [];
+  renderBoard();
+}
+
+// ---------- TABLERO ----------
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+function renderBoard(){
+  const el = document.getElementById('boardView');
+  const activos = TICKETS.filter(t=>!t.resuelto_at);
+  const resueltos = TICKETS.filter(t=>t.resuelto_at);
+
+  const colsActivos = ESTADOS.map(est => colHtml(est.nombre, est.color, activos.filter(t=>t.estado===est.nombre)));
+
+  const grupos = {}; // 'YYYY-MM' -> {label, items}
+  resueltos.forEach(t=>{
+    const d = new Date(t.resuelto_at);
+    const key = d.getFullYear() + '-' + String(d.getMonth()).padStart(2,'0');
+    if(!grupos[key]) grupos[key] = {label:`Solicitudes realizadas ${MESES[d.getMonth()]} ${d.getFullYear()}`, items:[]};
+    grupos[key].items.push(t);
+  });
+  const colsResueltos = Object.keys(grupos).sort().reverse()
+    .map(key => colHtml(grupos[key].label, 'var(--ink-faint)', grupos[key].items));
+
+  el.innerHTML = `<div class="board">${colsActivos.join('')}${colsResueltos.join('')}</div>`;
+}
+function colHtml(nombre, color, items){
+  return `
+  <div class="col">
+    <div class="col-head" style="--c:${color}">
+      <span class="name">${nombre}</span><span class="count">${items.length}</span>
+    </div>
+    <div class="col-body">
+      ${items.length ? items.map(ticketHtml).join('') : '<div class="empty">Sin solicitudes</div>'}
+    </div>
+  </div>`;
+}
+function ticketHtml(t){
+  return `
+  <div class="ticket" onclick="openTicket('${t.id}')">
+    <div class="num">#${t.numero}</div>
+    <div class="tit">${t.tipo_solicitud}</div>
+    <div class="meta">${t.clinica} · ${t.recepcionista}</div>
+  </div>`;
+}
+
+// ---------- MODAL DETALLE / EDICIÓN ----------
+function openTicket(id){
+  currentTicket = TICKETS.find(t=>t.id===id);
+  if(!currentTicket) return;
+  document.getElementById('modalBody').innerHTML = modalHtml(currentTicket);
+  document.getElementById('overlay').classList.add('show');
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('show'); currentTicket=null; }
+function modalHtml(t){
+  const fecha = new Date(t.created_at).toLocaleString('es-AR');
+  return `
+    <h2>#${t.numero} · ${t.tipo_solicitud}</h2>
+    <div class="sub">${t.clinica} · ${t.recepcionista} · ${fecha}</div>
+
+    <label>Descripción de la recepcionista</label>
+    <div class="readonly">${t.descripcion || '—'}</div>
+
+    <label>Correo clínica</label>
+    <div class="readonly">${t.correo_clinica || '—'}</div>
+
+    ${t.archivo_url ? `<label>Adjunto</label><a class="link-file" href="${t.archivo_url}" target="_blank">Ver archivo adjunto ↗</a>` : ''}
+
+    <label>Estado</label>
+    <select id="f_estado">
+      ${ESTADOS.map(e=>`<option value="${e.nombre}" ${e.nombre===t.estado?'selected':''}>${e.nombre}</option>`).join('')}
+    </select>
+
+    <div class="row2">
+      <div>
+        <label>Asignado</label>
+        <input type="text" id="f_asignado" value="${t.asignado||''}">
+      </div>
+      <div>
+        <label>Resp. de área</label>
+        <input type="text" id="f_resp_area" value="${t.resp_area||''}">
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label>Tipificación OK</label>
+        <input type="text" id="f_tip_ok" value="${t.tipificacion_ok||''}">
+      </div>
+      <div>
+        <label>Tipificación NO</label>
+        <input type="text" id="f_tip_no" value="${t.tipificacion_no||''}">
+      </div>
+    </div>
+
+    <label>Cormillot</label>
+    <input type="text" id="f_cormillot" value="${t.cormillot||''}">
+
+    <label>Obs. resp. de área</label>
+    <textarea id="f_obs_resp">${t.obs_resp_area||''}</textarea>
+
+    <label>Obs. / motivo cancelación</label>
+    <textarea id="f_obs_cancel">${t.obs_motivo_cancelacion||''}</textarea>
+
+    <label style="display:flex;align-items:center;gap:8px;text-transform:none;font-size:13.5px;color:var(--ink);margin-top:18px;">
+      <input type="checkbox" id="f_resuelto" ${t.resuelto_at?'checked':''} style="width:auto;">
+      Marcar como resuelta (se archiva en el grupo del mes correspondiente)
+    </label>
+    ${t.resuelto_at ? `<div class="sub" style="margin-top:2px;">Resuelta el ${new Date(t.resuelto_at).toLocaleString('es-AR')}</div>` : ''}
+
+    <div class="actions">
+      <button class="btn-close" onclick="closeModal()">Cerrar</button>
+      <button class="btn-save" onclick="saveTicket()">Guardar cambios</button>
+    </div>
+  `;
+}
+async function saveTicket(){
+  if(!currentTicket) return;
+  const estado = document.getElementById('f_estado').value;
+  const marcarResuelto = document.getElementById('f_resuelto').checked;
+  const payload = {
+    estado,
+    asignado: document.getElementById('f_asignado').value,
+    resp_area: document.getElementById('f_resp_area').value,
+    tipificacion_ok: document.getElementById('f_tip_ok').value,
+    tipificacion_no: document.getElementById('f_tip_no').value,
+    cormillot: document.getElementById('f_cormillot').value,
+    obs_resp_area: document.getElementById('f_obs_resp').value,
+    obs_motivo_cancelacion: document.getElementById('f_obs_cancel').value,
+  };
+  if(marcarResuelto && !currentTicket.resuelto_at){
+    payload.resuelto_at = new Date().toISOString();
+  } else if(!marcarResuelto && currentTicket.resuelto_at){
+    payload.resuelto_at = null; // se desarchiva y vuelve a la columna activa de "estado"
+  }
+  const {error} = await supabaseClient.from('solicitudes_help_desk').update(payload).eq('id', currentTicket.id);
+  if(error){ alert('No se pudo guardar: ' + error.message); return; }
+  closeModal();
+  await loadTickets();
+}
+
+// ---------- CATÁLOGOS ----------
+const CATALOGS = [
+  {table:'hd_clinicas', title:'Clínicas', extra:'correo_electronico', extraLabel:'Correo'},
+  {table:'hd_recepcionistas', title:'Recepcionistas'},
+  {table:'hd_tipos_solicitud', title:'Tipos de solicitud'},
+  {table:'hd_equipo', title:'Equipo Help Desk (notificaciones)', extra:'email', extraLabel:'Email', noActivo:false, nameField:'nombre'},
+];
+async function renderCatalogs(){
+  const el = document.getElementById('catalogView');
+  el.innerHTML = `<div class="cat-grid">${CATALOGS.map(c=>`<div class="cat-panel" id="cat_${c.table}"><h3>${c.title}</h3><div class="cat-items">Cargando…</div></div>`).join('')}</div>`;
+  for(const c of CATALOGS) await loadCatalog(c);
+}
+async function loadCatalog(cfg){
+  const {data} = await supabaseClient.from(cfg.table).select('*').order(cfg.table==='hd_equipo'?'nombre':'orden');
+  const panel = document.getElementById('cat_'+cfg.table);
+  const items = data || [];
+  panel.querySelector('.cat-items').outerHTML = `
+    <div class="cat-items">
+      ${items.map(i=>catItemHtml(cfg, i)).join('')}
+    </div>
+    <div class="cat-add">
+      <input type="text" placeholder="Nuevo…" id="add_${cfg.table}_nombre">
+      ${cfg.extra ? `<input type="text" placeholder="${cfg.extraLabel}" id="add_${cfg.table}_extra">` : ''}
+      <button onclick="addCatItem('${cfg.table}')">Agregar</button>
+    </div>
+  `;
+}
+function catItemHtml(cfg, item){
+  const activo = cfg.table==='hd_equipo' ? item.activo : item.activo;
+  return `
+    <div class="cat-item">
+      <input type="text" value="${item.nombre}" onchange="updateCatItem('${cfg.table}','${item.id}','nombre',this.value)">
+      ${cfg.extra ? `<input type="text" value="${item[cfg.extra]||''}" style="max-width:170px" onchange="updateCatItem('${cfg.table}','${item.id}','${cfg.extra}',this.value)">` : ''}
+      <label style="display:flex;align-items:center;gap:4px;font-size:11.5px;color:var(--ink-soft);">
+        <input type="checkbox" ${activo?'checked':''} onchange="updateCatItem('${cfg.table}','${item.id}','activo',this.checked)" style="width:auto;">
+        activo
+      </label>
+      <button onclick="deleteCatItem('${cfg.table}','${item.id}')">✕</button>
+    </div>`;
+}
+async function addCatItem(table){
+  const nombre = document.getElementById(`add_${table}_nombre`).value.trim();
+  if(!nombre) return;
+  const cfg = CATALOGS.find(c=>c.table===table);
+  const payload = {nombre};
+  if(cfg.extra) payload[cfg.extra] = document.getElementById(`add_${table}_extra`).value.trim();
+  await supabaseClient.from(table).insert(payload);
+  await loadCatalog(cfg);
+}
+async function updateCatItem(table, id, field, value){
+  await supabaseClient.from(table).update({[field]: value}).eq('id', id);
+}
+async function deleteCatItem(table, id){
+  if(!confirm('¿Eliminar este ítem del catálogo?')) return;
+  await supabaseClient.from(table).delete().eq('id', id);
+  await loadCatalog(CATALOGS.find(c=>c.table===table));
+}
+</script>
+</body>
+</html>
