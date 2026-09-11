@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solicitudes Help Desk — Dental Total</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#F6F7F9; --surface:#FFFFFF; --border:#E4E7EC;
+    --ink:#1B1E24; --ink-soft:#6B7280; --ink-faint:#9AA1AC;
+    --accent:#3E63DD; --accent-bg:#EEF1FE; --danger:#D0393E; --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;
+    display:flex;justify-content:center;padding:32px 16px;}
+  .card{width:100%;max-width:560px;background:var(--surface);border:1px solid var(--border);
+    border-radius:14px;padding:32px 28px 28px;box-shadow:0 8px 28px rgba(20,22,30,.05);}
+  .brand{text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;
+    color:var(--accent);letter-spacing:.01em;margin-bottom:22px;}
+  h1{font-family:'Space Grotesk',sans-serif;font-size:22px;text-align:center;margin:0 0 4px;}
+  .tagline{text-align:center;color:var(--ink-soft);font-size:13px;margin:0 0 26px;
+    display:flex;align-items:center;justify-content:center;gap:6px;}
+  label{display:block;font-size:14px;font-weight:600;margin:20px 0 4px;}
+  label .req{color:var(--danger);}
+  .hint{font-size:12px;color:var(--ink-soft);margin:0 0 8px;line-height:1.4;}
+  select,input[type=text],input[type=email],textarea{
+    width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:8px;
+    font-family:'Inter',sans-serif;font-size:14px;color:var(--ink);background:var(--surface);
+  }
+  select:focus,input:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:0;border-color:transparent;}
+  textarea{resize:vertical;min-height:70px;}
+  .counter{text-align:right;font-size:11.5px;color:var(--ink-faint);margin-top:4px;}
+  .dropzone{
+    margin-top:8px;border:1.5px dashed var(--border);border-radius:10px;padding:28px 16px;
+    text-align:center;color:var(--ink-soft);font-size:13.5px;cursor:pointer;background:var(--bg);
+  }
+  .dropzone:hover{border-color:var(--accent);}
+  .dropzone svg{width:22px;height:22px;color:var(--ink-faint);margin-bottom:8px;}
+  .dropzone a{color:var(--accent);font-weight:600;text-decoration:none;}
+  .file-chip{
+    margin-top:10px;display:flex;align-items:center;gap:8px;background:var(--accent-bg);
+    color:var(--accent);border-radius:8px;padding:8px 12px;font-size:13px;font-weight:600;
+  }
+  .file-chip button{margin-left:auto;background:none;border:none;color:var(--accent);cursor:pointer;font-size:16px;line-height:1;}
+  .submit-btn{
+    margin-top:26px;width:100%;padding:13px;border:none;border-radius:9px;background:var(--accent);
+    color:#fff;font-family:'Inter',sans-serif;font-weight:700;font-size:14.5px;cursor:pointer;
+  }
+  .submit-btn:disabled{opacity:.6;cursor:not-allowed;}
+  .submit-btn:not(:disabled):hover{filter:brightness(1.05);}
+  .msg{margin-top:16px;padding:12px 14px;border-radius:8px;font-size:13.5px;display:none;}
+  .msg.ok{display:block;background:#E7F3E9;color:#227A3E;}
+  .msg.err{display:block;background:#FBE7E7;color:var(--danger);}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <div class="brand">DENTAL TOTAL</div>
+  <h1>Solicitudes Help Desk</h1>
+  <p class="tagline">📍 Soporte IT a las Clínicas</p>
+
+  <form id="hdForm">
+    <label>Clínica <span class="req">*</span></label>
+    <select id="clinica" required><option value="" disabled selected>Elegí una opción</option></select>
+
+    <label>Recepcionista <span class="req">*</span></label>
+    <p class="hint">→ En el caso de Rotativa y Cubre, seleccionar esta opción y agregar Nombre y Apellido en "Descripción".</p>
+    <select id="recepcionista" required><option value="" disabled selected>Elegí una opción</option></select>
+
+    <label>Tipo de solicitud <span class="req">*</span></label>
+    <p class="hint">→ Hacé clic en el Tipo de Solicitud</p>
+    <select id="tipoSolicitud" required><option value="" disabled selected>Elegí una opción</option></select>
+
+    <label>Descripción <span class="req">*</span></label>
+    <p class="hint">→ Podés agregar los datos que consideres necesarios</p>
+    <textarea id="descripcion" maxlength="255" required></textarea>
+    <div class="counter"><span id="descCount">0</span>/255</div>
+
+    <label>Agregar archivo</label>
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="archivo" style="display:none">
+      <div>⬆️</div>
+      <div><a href="#" id="chooseFile">Elige un archivo para cargar</a> o arrastrá y soltá acá</div>
+    </div>
+    <div id="fileChip"></div>
+
+    <label>Correo electrónico "Clínica" <span class="req">*</span></label>
+    <input type="email" id="correoClinica" required>
+
+    <button class="submit-btn" type="submit" id="submitBtn">Enviar</button>
+    <div class="msg" id="msg"></div>
+  </form>
+</div>
+
+<script>
+// ======= CONFIGURACIÓN — completar con los datos de tu proyecto Supabase =======
+const SUPABASE_URL = 'https://ejkcdvhvdljwxmsxdumq.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_fXZNzp7BAOD8r_36sWkThw_eFTfBoOM';
+// ================================================================================
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let selectedFile = null;
+
+async function cargarCatalogos(){
+  const [{data:clinicas}, {data:recep}, {data:tipos}] = await Promise.all([
+    supabaseClient.from('hd_clinicas').select('nombre, correo_electronico').eq('activo', true).order('orden'),
+    supabaseClient.from('hd_recepcionistas').select('nombre').eq('activo', true).order('orden'),
+    supabaseClient.from('hd_tipos_solicitud').select('nombre').eq('activo', true).order('orden'),
+  ]);
+  fillSelect('clinica', (clinicas||[]).map(c=>c.nombre));
+  fillSelect('recepcionista', (recep||[]).map(r=>r.nombre));
+  fillSelect('tipoSolicitud', (tipos||[]).map(t=>t.nombre));
+
+  // sugerir el correo de la clínica seleccionada, pero se puede editar
+  const clinicaSel = document.getElementById('clinica');
+  clinicaSel.addEventListener('change', ()=>{
+    const match = (clinicas||[]).find(c=>c.nombre===clinicaSel.value);
+    if(match && match.correo_electronico){
+      document.getElementById('correoClinica').value = match.correo_electronico;
+    }
+  });
+}
+function fillSelect(id, values){
+  const el = document.getElementById(id);
+  values.forEach(v=>{
+    const opt = document.createElement('option');
+    opt.value = v; opt.textContent = v;
+    el.appendChild(opt);
+  });
+}
+cargarCatalogos();
+
+document.getElementById('descripcion').addEventListener('input', e=>{
+  document.getElementById('descCount').textContent = e.target.value.length;
+});
+
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('archivo');
+document.getElementById('chooseFile').addEventListener('click', e=>{ e.preventDefault(); fileInput.click(); });
+dropzone.addEventListener('click', ()=>fileInput.click());
+dropzone.addEventListener('dragover', e=>{ e.preventDefault(); dropzone.style.borderColor='var(--accent)'; });
+dropzone.addEventListener('dragleave', ()=>{ dropzone.style.borderColor='var(--border)'; });
+dropzone.addEventListener('drop', e=>{
+  e.preventDefault(); dropzone.style.borderColor='var(--border)';
+  if(e.dataTransfer.files[0]) setFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', ()=>{ if(fileInput.files[0]) setFile(fileInput.files[0]); });
+
+function setFile(file){
+  selectedFile = file;
+  document.getElementById('fileChip').innerHTML = `
+    <div class="file-chip">📎 ${file.name}
+      <button type="button" onclick="clearFile()">✕</button>
+    </div>`;
+}
+function clearFile(){ selectedFile = null; fileInput.value=''; document.getElementById('fileChip').innerHTML=''; }
+
+document.getElementById('hdForm').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const msg = document.getElementById('msg');
+  msg.className = 'msg'; msg.textContent = '';
+  btn.disabled = true; btn.textContent = 'Enviando...';
+
+  try{
+    let archivo_url = null;
+    if(selectedFile){
+      const path = `${Date.now()}_${selectedFile.name}`.replace(/\s+/g,'_');
+      const {error: upErr} = await supabaseClient.storage.from('help-desk-adjuntos').upload(path, selectedFile);
+      if(upErr) throw upErr;
+      const {data: pub} = supabaseClient.storage.from('help-desk-adjuntos').getPublicUrl(path);
+      archivo_url = pub.publicUrl;
+    }
+
+    const payload = {
+      clinica: document.getElementById('clinica').value,
+      recepcionista: document.getElementById('recepcionista').value,
+      tipo_solicitud: document.getElementById('tipoSolicitud').value,
+      descripcion: document.getElementById('descripcion').value,
+      correo_clinica: document.getElementById('correoClinica').value,
+      archivo_url
+    };
+    const {error} = await supabaseClient.from('solicitudes_help_desk').insert(payload);
+    if(error) throw error;
+
+    msg.className = 'msg ok';
+    msg.textContent = '¡Listo! Tu solicitud fue enviada al equipo de Help Desk.';
+    e.target.reset();
+    document.getElementById('descCount').textContent = '0';
+    clearFile();
+  }catch(err){
+    msg.className = 'msg err';
+    msg.textContent = 'No pudimos enviar la solicitud: ' + (err.message || err);
+  }finally{
+    btn.disabled = false; btn.textContent = 'Enviar';
+  }
+});
+</script>
+</body>
+</html>
